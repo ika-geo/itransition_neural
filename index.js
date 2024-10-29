@@ -4,7 +4,12 @@ const Tesseract = require('tesseract.js');
 
 const directoryPath = path.join(__dirname, 'digits');
 const array = [];
-const objectArray = []
+let counter = 0
+let processedImages = 0
+
+function getPercent(full, value){
+    return (value/full) * 100
+}
 
 function isValid(value) {
     return /^[0-9]$/.test(value);
@@ -16,17 +21,19 @@ fs.readdir(directoryPath, async (err, files) => {
     }
     const images = files.filter(file => path.extname(file).toLowerCase() === '.jpg')
     for (const image of images) {
-        if (array.length === 10) break;
         const result = await Tesseract.recognize(
             path.join(directoryPath, image),
             'eng'
         );
         const parsedValue = parseInt(result.data.text);
+        counter++
+        console.clear();
+        console.log(getPercent(images.length, counter).toFixed(2),'%')
         if (isValid(parsedValue)) {
-            // objectArray.push({ [image]: parsedValue });
-            array.push(`${array.length}_${parsedValue}`);
+            processedImages++
+            array[parsedValue] = (array[parsedValue] || 0) + 1;
         }
     }
-    // console.log(objectArray)
-    console.log(array);
+    console.log(array.map((item,index)=>`${index}_${item}`));
+    console.log(`processed ${processedImages} images from ${counter}`)
 });
